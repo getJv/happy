@@ -1,62 +1,81 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_map/flutter_map.dart';
-import "package:latlong/latlong.dart" as latLng;
+import 'dart:async';
+import 'dart:collection';
 
-class Home extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
+class CreateOrphanage extends StatefulWidget {
+  @override
+  _CreateOrphanageState createState() => _CreateOrphanageState();
+}
+
+class _CreateOrphanageState extends State<CreateOrphanage> {
+  Completer<GoogleMapController> _controller = Completer();
+  Set<Marker> _markers = HashSet<Marker>();
+  BitmapDescriptor _markerIcon;
+
+  static final CameraPosition _kGooglePlex = CameraPosition(
+    target: LatLng(-15.7920155, -47.8897989),
+    zoom: 14.4746,
+  );
+
+  static final CameraPosition _kLake = CameraPosition(
+    bearing: 192.8334901395799,
+    target: LatLng(-15.7995798, -47.8638008),
+    tilt: 59.440717697143555,
+    zoom: 18,
+  );
+
+  void _setMarkerIcon() async {
+    _markerIcon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(),
+      'assets/images/marker.png',
+    );
+  }
+
+  void _onMapCreated(GoogleMapController controller) {
+    _controller.complete(controller);
+
+    setState(() {
+      /*  _markers.add(
+        Marker(
+          markerId: MarkerId("0"),
+          position: LatLng(-15.7920155, -47.8897989),
+          infoWindow: InfoWindow(
+            title: "Primeiro Marker",
+            snippet: "An cool feature",
+          ),
+          icon: _markerIcon
+        ),
+      ); */
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _setMarkerIcon();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: FlutterMap(
-        options: MapOptions(
-          center: latLng.LatLng(-15.7931994, -47.88613),
-          zoom: 13.0,
-        ),
-        layers: [
-          TileLayerOptions(
-            urlTemplate:
-                "https://api.mapbox.com/styles/v1/mapbox/light-v10/tiles/256/{z}/{x}/{y}@2x?access_token={accessToken}",
-            additionalOptions: {
-              'accessToken': DotEnv().env['MAPBOX_TOKEN'],
-              'id': 'mapbox.streets',
-            },
-          ),
-          MarkerLayerOptions(
-            markers: [
-              Marker(
-                width: 80.0,
-                height: 80.0,
-                point: latLng.LatLng(-15.7931994, -47.88613),
-                builder: (ctx) => Container(
-                  child: IconButton(
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        builder: (builder) {
-                          return Container(
-                            color: Colors.white,
-                            child: Center(
-                              child: Text("OPPA"),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                    color: Theme.of(context).accentColor,
-                    iconSize: 45.0,
-                    icon: Icon(Icons.location_pin),
-                  ),
-                ),
-              )
-            ],
-          )
-        ],
+    return new Scaffold(
+      body: GoogleMap(
+        mapType: MapType.satellite,
+        initialCameraPosition: _kGooglePlex,
+        onMapCreated: _onMapCreated,
+        markers: _markers,
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        child: Icon(Icons.navigate_next),
-        backgroundColor: Theme.of(context).accentColor,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _goToTheLake,
+        label: Text('To the lake!'),
+        icon: Icon(Icons.directions_boat),
       ),
     );
+  }
+
+  Future<void> _goToTheLake() async {
+    final GoogleMapController controller = await _controller.future;
+    controller.animateCamera(CameraUpdate.newCameraPosition(_kLake));
   }
 }
