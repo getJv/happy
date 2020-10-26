@@ -3,6 +3,7 @@ import 'dart:collection';
 
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:happy/utils/routes.dart';
 
 class CreateOrphanage extends StatefulWidget {
   @override
@@ -67,15 +68,12 @@ class _CreateOrphanageState extends State<CreateOrphanage> {
         markers: _markers,
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _goToTheLake,
-        label: Text('To the lake!'),
-        icon: Icon(Icons.directions_boat),
+        onPressed: () {
+          Navigator.of(context).pushNamed(AppRoutes.CREATE_ORPHANAGE_ONE);
+        },
+        label: Text('Continuar'),
+        icon: Icon(Icons.navigate_next),
       ),
     );
-  }
-
-  Future<void> _goToTheLake() async {
-    final GoogleMapController controller = await _controller.future;
-    controller.animateCamera(CameraUpdate.newCameraPosition(_kLake));
   }
 }

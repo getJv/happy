@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:happy/screens/createOrphanage.dart';
+import 'package:happy/screens/createOrphanageOne.dart';
 import 'package:happy/screens/home.dart';
 import 'package:happy/screens/onboard-one.dart';
 import 'package:happy/screens/onboard-two.dart';
@@ -31,6 +32,7 @@ class MyApp extends StatelessWidget {
         AppRoutes.ONBORARD_TWO: (ctx) => OnboardTwo(),
         AppRoutes.HOME: (ctx) => Home(),
         AppRoutes.CREATE_ORPHANAGE: (ctx) => CreateOrphanage(),
+        AppRoutes.CREATE_ORPHANAGE_ONE: (ctx) => CreateOrphanageOne(),
       },
     );
   }

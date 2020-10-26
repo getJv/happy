@@ -4,4 +4,5 @@ class AppRoutes {
   static const ONBORARD_TWO = '/onboard-two';
   static const HOME = '/home';
   static const CREATE_ORPHANAGE = '/createOrphanage';
+  static const CREATE_ORPHANAGE_ONE = '/createOrphanageOne';
 }
