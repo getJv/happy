@@ -7,9 +7,25 @@ import 'package:happy/screens/onboard-one.dart';
 import 'package:happy/screens/onboard-two.dart';
 import 'package:happy/screens/splash.dart';
 import 'package:happy/utils/routes.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+bool USE_FIRESTORE_EMULATOR = false;
 
 void main() async {
   await DotEnv().load('.env');
+  await Firebase.initializeApp();
+  final firestoreInstance = FirebaseFirestore.instance;
+
+  firestoreInstance.collection("orphanages").add({
+    "name": "john",
+    "age": 50,
+    "email": "example@example.com",
+    "address": {"street": "street 24", "city": "new york"}
+  }).then((value) {
+    print(value.id);
+  });
+
   runApp(MyApp());
 }
 

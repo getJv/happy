@@ -13,25 +13,25 @@ class CreateOrphanage extends StatefulWidget {
 class _CreateOrphanageState extends State<CreateOrphanage> {
   Completer<GoogleMapController> _controller = Completer();
   Set<Marker> _markers = HashSet<Marker>();
-  BitmapDescriptor _markerIcon;
+  //BitmapDescriptor _markerIcon;
 
   static final CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(-15.7920155, -47.8897989),
     zoom: 14.4746,
   );
 
-  static final CameraPosition _kLake = CameraPosition(
+  /*  static final CameraPosition _kLake = CameraPosition(
     bearing: 192.8334901395799,
     target: LatLng(-15.7995798, -47.8638008),
     tilt: 59.440717697143555,
     zoom: 18,
-  );
+  ); */
 
   void _setMarkerIcon() async {
-    _markerIcon = await BitmapDescriptor.fromAssetImage(
+    /*  _markerIcon = await BitmapDescriptor.fromAssetImage(
       ImageConfiguration(),
       'assets/images/marker.png',
-    );
+    ); */
   }
 
   void _onMapCreated(GoogleMapController controller) {

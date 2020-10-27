@@ -12,6 +12,25 @@ class _CreateOrphanageOneState extends State<CreateOrphanageOne> {
   bool complete = false;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final _formData = Map<String, Object>();
+  bool isSwitched = false;
+
+  final _aboutFocusNode = FocusNode();
+  final _phoneFocusNode = FocusNode();
+  final _emailFocusNode = FocusNode();
+  final _instructionsFocusNode = FocusNode();
+  final _openingHoursFocusNode = FocusNode();
+  final _openOnWeekendsFocusNode = FocusNode();
+
+  @override
+  void dispose() {
+    super.dispose();
+    _aboutFocusNode.dispose();
+    _phoneFocusNode.dispose();
+    _emailFocusNode.dispose();
+    _instructionsFocusNode.dispose();
+    _openingHoursFocusNode.dispose();
+    _openOnWeekendsFocusNode.dispose();
+  }
 
   next() {
     currentStep + 1 != steps().length
@@ -31,6 +50,9 @@ class _CreateOrphanageOneState extends State<CreateOrphanageOne> {
         currentStep = step;
       },
     );
+    if (step == 1) {
+      FocusScope.of(context).requestFocus(_instructionsFocusNode);
+    }
   }
 
   StepState _getState(int i) {
@@ -48,6 +70,7 @@ class _CreateOrphanageOneState extends State<CreateOrphanageOne> {
         content: Column(
           children: <Widget>[
             TextFormField(
+              autofocus: true,
               decoration: InputDecoration(labelText: 'Nome da instituição'),
               validator: (value) {
                 if (value.length < 2) {
@@ -56,17 +79,28 @@ class _CreateOrphanageOneState extends State<CreateOrphanageOne> {
                 return null;
               },
               onSaved: (value) => _formData['orphanage'] = value,
+              onFieldSubmitted: (_) {
+                FocusScope.of(context).requestFocus(_aboutFocusNode);
+              },
             ),
             TextFormField(
               decoration: InputDecoration(labelText: 'Sobre a instituição'),
+              focusNode: _aboutFocusNode,
               maxLines: null,
               keyboardType: TextInputType.multiline,
               onSaved: (value) => _formData['about'] = value,
+              onFieldSubmitted: (_) {
+                FocusScope.of(context).requestFocus(_phoneFocusNode);
+              },
             ),
             TextFormField(
               decoration: InputDecoration(labelText: 'Telefone'),
               keyboardType: TextInputType.phone,
+              focusNode: _phoneFocusNode,
               onSaved: (value) => _formData['phone'] = value,
+              onFieldSubmitted: (_) {
+                FocusScope.of(context).requestFocus(_emailFocusNode);
+              },
               validator: (value) {
                 var potentialNumber = int.tryParse(value);
                 if (potentialNumber == null) {
@@ -78,6 +112,7 @@ class _CreateOrphanageOneState extends State<CreateOrphanageOne> {
             TextFormField(
               decoration: InputDecoration(labelText: 'E-mail'),
               keyboardType: TextInputType.emailAddress,
+              focusNode: _emailFocusNode,
               onSaved: (value) => _formData['email'] = value,
               validator: (value) {
                 if (!EmailValidator.validate(value)) {
@@ -98,7 +133,11 @@ class _CreateOrphanageOneState extends State<CreateOrphanageOne> {
               decoration: InputDecoration(labelText: 'Instruções'),
               maxLines: null,
               keyboardType: TextInputType.multiline,
+              focusNode: _instructionsFocusNode,
               onSaved: (value) => _formData['instructions'] = value,
+              onFieldSubmitted: (_) {
+                FocusScope.of(context).requestFocus(_openingHoursFocusNode);
+              },
               validator: (value) {
                 if (value.length < 2) {
                   return 'Campo obrigatório';
@@ -108,7 +147,11 @@ class _CreateOrphanageOneState extends State<CreateOrphanageOne> {
             ),
             TextFormField(
               decoration: InputDecoration(labelText: 'Horário de atendimento'),
+              focusNode: _openingHoursFocusNode,
               onSaved: (value) => _formData['opening_hours'] = value,
+              onFieldSubmitted: (_) {
+                FocusScope.of(context).requestFocus(_openOnWeekendsFocusNode);
+              },
               validator: (value) {
                 if (value.length < 2) {
                   return 'Campo obrigatório';
@@ -116,16 +159,27 @@ class _CreateOrphanageOneState extends State<CreateOrphanageOne> {
                 return null;
               },
             ),
-            TextFormField(
-              decoration: InputDecoration(labelText: 'Atende fim de semana'),
-              onSaved: (value) => _formData['open_on_weekend'] = value,
-              validator: (value) {
-                if (value.length < 2) {
-                  return 'Campo obrigatório';
-                }
-                return null;
-              },
-            ),
+            Container(
+              padding: EdgeInsets.only(top: 10.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Aberto fim de semana:'),
+                  SizedBox(),
+                  Switch(
+                    value: isSwitched,
+                    onChanged: (value) {
+                      setState(() {
+                        isSwitched = value;
+                      });
+                    },
+                    focusNode: _openOnWeekendsFocusNode,
+                    activeTrackColor: Colors.lightGreenAccent,
+                    activeColor: Colors.green,
+                  ),
+                ],
+              ),
+            )
           ],
         ),
       ),
