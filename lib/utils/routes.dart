@@ -5,4 +5,5 @@ class AppRoutes {
   static const HOME = '/home';
   static const CREATE_ORPHANAGE = '/createOrphanage';
   static const CREATE_ORPHANAGE_ONE = '/createOrphanageOne';
+  static const CREATE_ORPHANAGE_DETAILS = '/orphanageDetails';
 }

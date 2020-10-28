@@ -1,6 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:email_validator/email_validator.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:happy/models/Orphanage.dart';
+import 'package:happy/utils/routes.dart';
 
 class CreateOrphanageOne extends StatefulWidget {
   @override
@@ -11,7 +14,6 @@ class _CreateOrphanageOneState extends State<CreateOrphanageOne> {
   int currentStep = 0;
   bool complete = false;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final _formData = Map<String, Object>();
   bool isSwitched = false;
 
   final _aboutFocusNode = FocusNode();
@@ -20,6 +22,14 @@ class _CreateOrphanageOneState extends State<CreateOrphanageOne> {
   final _instructionsFocusNode = FocusNode();
   final _openingHoursFocusNode = FocusNode();
   final _openOnWeekendsFocusNode = FocusNode();
+
+  final _nameController = TextEditingController();
+  final _aboutController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _instructionsController = TextEditingController();
+  final _openingHoursController = TextEditingController();
+  final _openOnWeekendsController = TextEditingController();
 
   @override
   void dispose() {
@@ -32,19 +42,19 @@ class _CreateOrphanageOneState extends State<CreateOrphanageOne> {
     _openOnWeekendsFocusNode.dispose();
   }
 
-  next() {
+  void next() {
     currentStep + 1 != steps().length
         ? goTo(currentStep + 1)
         : setState(() => complete = true);
   }
 
-  cancel() {
+  void cancel() {
     if (currentStep > 0) {
       goTo(currentStep - 1);
     }
   }
 
-  goTo(int step) {
+  void goTo(int step) {
     setState(
       () {
         currentStep = step;
@@ -71,33 +81,34 @@ class _CreateOrphanageOneState extends State<CreateOrphanageOne> {
           children: <Widget>[
             TextFormField(
               autofocus: true,
+              controller: _nameController,
               decoration: InputDecoration(labelText: 'Nome da instituição'),
+              textInputAction: TextInputAction.next,
               validator: (value) {
                 if (value.length < 2) {
                   return 'Campo obrigatório';
                 }
                 return null;
               },
-              onSaved: (value) => _formData['orphanage'] = value,
               onFieldSubmitted: (_) {
                 FocusScope.of(context).requestFocus(_aboutFocusNode);
               },
             ),
             TextFormField(
               decoration: InputDecoration(labelText: 'Sobre a instituição'),
+              controller: _aboutController,
               focusNode: _aboutFocusNode,
               maxLines: null,
               keyboardType: TextInputType.multiline,
-              onSaved: (value) => _formData['about'] = value,
               onFieldSubmitted: (_) {
                 FocusScope.of(context).requestFocus(_phoneFocusNode);
               },
             ),
             TextFormField(
               decoration: InputDecoration(labelText: 'Telefone'),
+              controller: _phoneController,
               keyboardType: TextInputType.phone,
               focusNode: _phoneFocusNode,
-              onSaved: (value) => _formData['phone'] = value,
               onFieldSubmitted: (_) {
                 FocusScope.of(context).requestFocus(_emailFocusNode);
               },
@@ -111,9 +122,9 @@ class _CreateOrphanageOneState extends State<CreateOrphanageOne> {
             ),
             TextFormField(
               decoration: InputDecoration(labelText: 'E-mail'),
+              controller: _emailController,
               keyboardType: TextInputType.emailAddress,
               focusNode: _emailFocusNode,
-              onSaved: (value) => _formData['email'] = value,
               validator: (value) {
                 if (!EmailValidator.validate(value)) {
                   return 'Please enter a valid email';
@@ -131,10 +142,10 @@ class _CreateOrphanageOneState extends State<CreateOrphanageOne> {
           children: <Widget>[
             TextFormField(
               decoration: InputDecoration(labelText: 'Instruções'),
+              controller: _instructionsController,
               maxLines: null,
               keyboardType: TextInputType.multiline,
               focusNode: _instructionsFocusNode,
-              onSaved: (value) => _formData['instructions'] = value,
               onFieldSubmitted: (_) {
                 FocusScope.of(context).requestFocus(_openingHoursFocusNode);
               },
@@ -147,8 +158,8 @@ class _CreateOrphanageOneState extends State<CreateOrphanageOne> {
             ),
             TextFormField(
               decoration: InputDecoration(labelText: 'Horário de atendimento'),
+              controller: _openingHoursController,
               focusNode: _openingHoursFocusNode,
-              onSaved: (value) => _formData['opening_hours'] = value,
               onFieldSubmitted: (_) {
                 FocusScope.of(context).requestFocus(_openOnWeekendsFocusNode);
               },
@@ -183,14 +194,6 @@ class _CreateOrphanageOneState extends State<CreateOrphanageOne> {
           ],
         ),
       ),
-      Step(
-        state: _getState(2),
-        title: const Text('Imagens'),
-        subtitle: const Text("Fotos do orfanato"),
-        content: Column(
-          children: <Widget>[Text('área de captura de imagens')],
-        ),
-      ),
     ];
   }
 
@@ -201,15 +204,26 @@ class _CreateOrphanageOneState extends State<CreateOrphanageOne> {
         SizedBox(
           height: 70.0,
         ),
-        FlatButton(
-          color: Colors.blue,
-          onPressed: onStepContinue,
-          child: Text(
-            'Continuar',
-            style: TextStyle(color: Colors.white),
-          ),
-        ),
-        currentStep > 0
+        currentStep < steps().length - 1
+            ? FlatButton(
+                color: Colors.blue,
+                onPressed: onStepContinue,
+                child: Text(
+                  'Continuar',
+                  style: TextStyle(color: Colors.white),
+                ),
+              )
+            : FlatButton(
+                color: Colors.blue,
+                onPressed: () {
+                  _saveForm();
+                },
+                child: Text(
+                  'Salvar',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+        currentStep > 0 && currentStep < steps().length - 1
             ? FlatButton(
                 onPressed: onStepCancel,
                 child: Text('Voltar'),
@@ -220,104 +234,78 @@ class _CreateOrphanageOneState extends State<CreateOrphanageOne> {
   }
 
   Future<Null> _saveForm() async {
-    print('opaaaa');
-
     if (!_formKey.currentState.validate()) {
       return;
     }
 
     _formKey.currentState.save();
-    final newOrphanage = Orphanage(
-      id: _formData['id'],
-      name: _formData['name'],
-      about: _formData['about'],
-      instructions: _formData['instructions'],
-      openingHours: _formData['opening_hours'],
-      openOnWeekend: _formData['open_on_weekend'],
-      phone: _formData['phone'],
-    );
 
-    print(newOrphanage);
+    try {
+      await Firebase.initializeApp();
+      final firestoreInstance = FirebaseFirestore.instance;
 
-    /* if (_formData['id'] == null) {
-      try {
-        await products.addProduct(newProduct);
-      } catch (error) {
-        await showDialog<Null>(
-            context: context,
-            builder: (ctx) => AlertDialog(
-                  title: Text('Ocorreu um erro'),
-                  content: Text(error.toString()),
-                  actions: [
-                    FlatButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: Text('OK'),
-                    ),
-                  ],
-                ));
-      } finally {
-        setState(() {
-          _isLoading = true;
-        });
-        Navigator.of(context).pop();
-      }
-    } else {
-      setState(() {
-        _isLoading = true;
-      });
-      Navigator.of(context).pop();
-      products.updateProduct(newProduct);
-    } */
+      var result = await firestoreInstance.collection("orphanages").add(
+        {
+          "name": _nameController.text,
+          "latitude": null,
+          "longitude": null,
+          "about": _aboutController.text,
+          "instructions": _instructionsController.text,
+          "opening_hours": _openingHoursController.text,
+          "phone": _phoneController.text,
+          "open_on_weekend": isSwitched,
+        },
+      );
+      var doc = await result.get();
+      print(doc.data());
+      Navigator.of(context).pushNamed(
+        AppRoutes.CREATE_ORPHANAGE_DETAILS,
+        arguments: {'orphanage': doc},
+      );
+    } catch (error) {
+      await showDialog<Null>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text('Ocorreu um erro'),
+          content: Text(
+            error.toString(),
+          ),
+          actions: [
+            FlatButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
-        appBar: AppBar(
-          title: Text('Cadastro de orfanato'),
-          actions: [
-            IconButton(
-                icon: Icon(Icons.save),
-                onPressed: () {
-                  _saveForm();
-                })
+      appBar: AppBar(
+        title: Text('Cadastro de orfanato'),
+      ),
+      body: Form(
+        key: _formKey,
+        autovalidateMode: AutovalidateMode.always,
+        child: Column(
+          children: <Widget>[
+            Expanded(
+              child: Stepper(
+                steps: steps(),
+                currentStep: currentStep,
+                type: StepperType.horizontal,
+                onStepContinue: next,
+                onStepTapped: (step) => goTo(step),
+                onStepCancel: cancel,
+                controlsBuilder: stepperControlBuilder,
+              ),
+            ),
           ],
         ),
-        body: Form(
-          key: _formKey,
-          autovalidateMode: AutovalidateMode.always,
-          child: Column(children: <Widget>[
-            complete
-                ? Expanded(
-                    child: Center(
-                      child: AlertDialog(
-                        title: new Text("Profile Created"),
-                        content: new Text(
-                          "Tada!",
-                        ),
-                        actions: <Widget>[
-                          new FlatButton(
-                            child: new Text("Close"),
-                            onPressed: () {
-                              setState(() => complete = false);
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                : Expanded(
-                    child: Stepper(
-                      steps: steps(),
-                      currentStep: currentStep,
-                      type: StepperType.vertical,
-                      onStepContinue: next,
-                      onStepTapped: (step) => goTo(step),
-                      onStepCancel: cancel,
-                      controlsBuilder: stepperControlBuilder,
-                    ),
-                  ),
-          ]),
-        ));
+      ),
+    );
   }
 }
